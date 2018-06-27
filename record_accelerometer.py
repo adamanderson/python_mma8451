@@ -1,4 +1,4 @@
-from MMA8451 import MMA8451
+from python_mma8451.MMA8451 import MMA8451
 import struct
 from ctypes import create_string_buffer
 from datetime import datetime
@@ -22,18 +22,21 @@ class MMA8451DAQ(object):
         self.buff = create_string_buffer(self.buffer_size)
         
 
-    def acquisition_loop(self):
+    def acquisition_loop(self, duration=None):
         '''
         Runs an infinite loop that acquires data from the accelerometer.
 
         Parameters
         ----------
-        None
+        duration : float
+            Duration in seconds for which to take data.
 
         Returns
         -------
         None
         '''
+        t0 = datetime.utcnow().timestamp()
+        timestamp = datetime.utcnow().timestamp()
         while True:
             # read the data and write to file
             data = self.accelerometer.read()
@@ -57,7 +60,10 @@ class MMA8451DAQ(object):
                     self.cleanup()
                     self.create_file()
                     self.write_header()
-                
+
+            if duration is not None and timestamp >= t0 + duration:
+                break
+                    
     def create_file(self):
         '''
         Creates file for accelerometer data.
@@ -107,21 +113,22 @@ class MMA8451DAQ(object):
         struct.pack_into(header_buffer_fmt, header_buffer, 0, *header_data)
         self.outfile.write(header_buffer)
         
-    def run(self):
+    def run(self, duration=None):
         '''
         Wrapper that runs the acquisition loop with handling for
         KeyboardInterrupts.
 
         Parameters
         ----------
-        None
+        duration : float
+            Duration in seconds for which to take data.
 
         Returns
         -------
         None
         '''
         try:
-            self.acquisition_loop()
+            self.acquisition_loop(duration)
         except KeyboardInterrupt:
             self.cleanup()
             
