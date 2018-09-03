@@ -8,6 +8,21 @@ header_size = 12
 block_size = 24
 
 def read_header(f):
+    '''
+    Read the header of a data file.
+
+    Parameters
+    ----------
+    f : file object
+        File object to read.
+
+    Returns
+    -------
+    start : float
+        UNIX timestamp of the start time for the data file.
+    rate : float
+        Sampling rate in Hz.
+    '''
     data = struct.unpack('df', f.read(header_size))
     start = data[0]
     rate = data[1]
@@ -15,6 +30,24 @@ def read_header(f):
 
 
 def read_file(fname):
+    '''
+    Read an entire file.
+
+    Parameters
+    ----------
+    fname : str
+        Name of file to read.
+
+    Returns
+    -------
+    acc_data : arr
+        N x 3 array containing accelerometer data. Columns correspond to x,y,z
+        data in order.
+    times : arr
+        1D array of UNIX timestamps of samples (approximate only).
+    rate : float
+        Sampling rate in Hz.
+    '''
     nbytes = os.stat(fname).st_size
     nblocks = (nbytes-header_size) / block_size
 
@@ -45,6 +78,28 @@ def read_file(fname):
 
 
 def read_for_time(datadir, start, stop):
+    '''
+    Read an entire file.
+
+    Parameters
+    ----------
+    datadir : str
+        Name of directory containing data files to read.
+    start : datetime
+        Datetime object corresponding to the start of the time interval to
+        extract.
+    stop : datetime
+        Datetime object corresponding to the end of the time interval to
+        extract.
+
+    Returns
+    -------
+    all_data : arr
+        N x 3 array containing accelerometer data. Columns correspond to x,y,z
+        data in order.
+    all_times : arr
+        1D array of UNIX timestamps of samples (approximate only).
+    '''
     fnames = np.sort(glob(os.path.join(datadir, '*accelerometer.dat')))
     start_times = np.zeros(len(fnames))
     all_data = np.empty((0,3), float)

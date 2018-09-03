@@ -48,6 +48,18 @@ class MMA8451(object):
             
         
     def begin(self):
+        '''
+        Initialize the settings of the accelerometer before beginning data
+        acquisition. Data acquisition will fail without running this beforehand.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        '''
         # check device status
         device_id = self.bus.read_byte_data(self.addr,
                                             MMA8451_REG_WHOAMI)
@@ -86,6 +98,18 @@ class MMA8451(object):
         self.bus.write_byte_data(self.addr, REG_F_SETUP, FLAG_FIFO_STOP_ON_OVERFLOW)
         
     def read(self):
+        '''
+        Read one sample from the accelerometer.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        acc_cal : dict
+            Accelerometer data in units of m/s^2.
+        '''
         overflow, counts = self.check_fifo()
         if counts > 0:
             data = self.bus.read_i2c_block_data(self.addr, MMA8451_REG_OUT_X_MSB, 6)
@@ -108,6 +132,22 @@ class MMA8451(object):
             return acc_cal
         
     def check_fifo(self):
+        '''
+        Check the status of the FIFO buffer on the accelerometer.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        overflow : int
+            Flag indicating whether the FIFO has overflowed. NB: I have never
+            been able to get this to read `True` with the default accelerometer
+            settings. Do not rely on this!
+        counts : int
+            Number of samples currently piled up in the FIFO buffer.
+        '''
         status = self.bus.read_byte_data(self.addr, REG_F_STATUS)
         overflow = status & MASK_FIFO_OVERFLOW
         counts = status & MASK_FIFO_COUNTS

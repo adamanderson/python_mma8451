@@ -23,6 +23,17 @@ class MMA8451DAQ(object):
         
 
     def acquisition_loop(self):
+        '''
+        Runs an infinite loop that acquires data from the accelerometer.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        '''
         while True:
             # read the data and write to file
             data = self.accelerometer.read()
@@ -48,13 +59,46 @@ class MMA8451DAQ(object):
                     self.write_header()
                 
     def create_file(self):
+        '''
+        Creates file for accelerometer data.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        '''
         self.fname = datetime.utcnow().strftime('%Y%m%d_%H%M%S_accelerometer.dat')
         self.outfile = open(self.fname, 'wb')
     
     def cleanup(self):
+        '''
+        Cleanup operations after a KeyboardInterrupt.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        '''
         self.outfile.close()
 
     def write_header(self):
+        '''
+        Write file header for accelerometer data. Contains timestamp and rate.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        '''
         # format: start time, data rate (in Hz)
         header_buffer_size = 8 + 4
         header_buffer_fmt = 'df'
@@ -64,6 +108,18 @@ class MMA8451DAQ(object):
         self.outfile.write(header_buffer)
         
     def run(self):
+        '''
+        Wrapper that runs the acquisition loop with handling for
+        KeyboardInterrupts.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        '''
         try:
             self.acquisition_loop()
         except KeyboardInterrupt:
