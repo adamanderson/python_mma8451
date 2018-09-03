@@ -3,6 +3,7 @@ import struct
 from ctypes import create_string_buffer
 from datetime import datetime
 import os
+import logging
 
 class MMA8451DAQ(object):
     def __init__(self):
@@ -28,6 +29,15 @@ class MMA8451DAQ(object):
                 struct.pack_into(self.buffer_fmt, self.buff, 0, *raw_data)
                 self.outfile.write(self.buff)
 
+                # monitor the FIFO for backlogged data
+                overflow, counts = self.accelerometer.check_fifo()
+                if counts >= 32:
+                    raise RuntimeError('MMA8451 FIFO buffer is full. '
+                                       'Exiting to avoid data loss.')
+                if counts > 10:
+                    logging.warning('MMA8451 FIFO buffer has {} of 32 '
+                                    'entries filled.'.format(counts))
+                
                 # check the file size and open a new file if necessary
                 if os.stat(self.fname).st_size > self.max_fsize:
                     self.cleanup()
