@@ -82,8 +82,7 @@ class MMA8451(object):
         
     def read(self):
         overflow, counts = self.check_fifo()
-        print('{}, {}'.format(overflow, counts))
-        
+
         if counts > 0:
             data = self.bus.read_i2c_block_data(self.addr, MMA8451_REG_OUT_X_MSB, 6)
         
@@ -101,17 +100,12 @@ class MMA8451(object):
             acc_cal = dict()
             for axis in ['x', 'y', 'z']:
                 acc_cal[axis] = float(acc[axis]) * calibration
-            # print('{}, {}, {}'.format(acc['x'],
-            #                           acc['y'],
-            #                           acc['z']))
-            print('{}, {}, {}'.format(acc_cal['x'],
-                                      acc_cal['y'],
-                                      acc_cal['z']))
 
+            return acc_cal
+        
     def check_fifo(self):
         status = self.bus.read_byte_data(self.addr, REG_F_STATUS)
         overflow = status & MASK_FIFO_OVERFLOW
         counts = status & MASK_FIFO_COUNTS
-        print(bin(status))
         
         return overflow, counts
