@@ -7,25 +7,28 @@ import logging
 
 class MMA8451DAQ(object):
     def __init__(self):
-        # create output file
-        self.create_file()
-        self.max_fsize = 1e5 # bytes
-
-        # create the output buffer
-        self.buffer_size = 4*3 # 3 axes with a 32-bit float for each
-        self.buffer_fmt = 'fff'
-        self.buff = create_string_buffer(self.buffer_size)
-        
         # MMA8451 driver object
         self.accelerometer = MMA8451()
         self.accelerometer.begin()
+
+        # create output file
+        self.create_file()
+        self.max_fsize = 1e5 # bytes
+        self.write_header()
+        
+        # create the output buffer
+        self.buffer_size = 4*3 + 12 
+        self.buffer_fmt = 'fffd'
+        self.buff = create_string_buffer(self.buffer_size)
+        
 
     def acquisition_loop(self):
         while True:
             # read the data and write to file
             data = self.accelerometer.read()
             if data is not None:
-                raw_data = (data['x'], data['y'], data['z'])
+                timestamp = datetime.utcnow().timestamp()
+                raw_data = (data['x'], data['y'], data['z'], timestamp)
                 struct.pack_into(self.buffer_fmt, self.buff, 0, *raw_data)
                 self.outfile.write(self.buff)
 
@@ -42,6 +45,7 @@ class MMA8451DAQ(object):
                 if os.stat(self.fname).st_size > self.max_fsize:
                     self.cleanup()
                     self.create_file()
+                    self.write_header()
                 
     def create_file(self):
         self.fname = datetime.utcnow().strftime('%Y%m%d_%H%M%S_accelerometer.dat')
@@ -49,6 +53,15 @@ class MMA8451DAQ(object):
     
     def cleanup(self):
         self.outfile.close()
+
+    def write_header(self):
+        # format: start time, data rate (in Hz)
+        header_buffer_size = 8 + 4
+        header_buffer_fmt = 'df'
+        header_data = (datetime.utcnow().timestamp(), self.accelerometer.rate)
+        header_buffer = create_string_buffer(header_buffer_size)
+        struct.pack_into(header_buffer_fmt, header_buffer, 0, *header_data)
+        self.outfile.write(header_buffer)
         
     def run(self):
         try:
