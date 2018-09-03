@@ -23,6 +23,8 @@ FLAG_RATE_50HZ             = 0x20
 FLAG_RATE_200Hz            = 0x10
 FLAG_RATE_400HZ            = 0x08
 FLAG_RATE_800HZ            = 0x00
+FLAGS_RATE                 = {50:FLAG_RATE_50HZ, 200:FLAG_RATE_200Hz,
+                              400:FLAG_RATE_400HZ, 800:FLAG_RATE_800HZ}
 FLAG_8BIT                  = 0x02
 FLAG_FIFO_STOP_ON_OVERFLOW = 0x80
 
@@ -36,11 +38,14 @@ MMA8451_CALIBRATION = {'2g': 1./4096, '4g': 1./2048, '8g': 1./1024}
 
 class MMA8451(object):
     def __init__(self, address=MMA8451_DEFAULT_ADDRESS,
-                 sensor_range='2g'):
+                 sensor_range='2g', rate=400):
         self.bus = smbus.SMBus(1)
         self.addr = address
         self.range = sensor_range
         self.resolution = 'high'
+        self.rate = rate
+        self.rate_bit = FLAGS_RATE[self.rate]
+            
         
     def begin(self):
         # check device status
@@ -57,7 +62,7 @@ class MMA8451(object):
         self.bus.write_byte_data(self.addr, MMA8451_REG_CTRL_REG1, 0x00) # reset
         self.bus.write_byte_data(self.addr, MMA8451_REG_CTRL_REG1,
                                  FLAG_ACTIVE | FLAG_LOWNOISE |
-                                 FLAG_RATE_800HZ)
+                                 self.rate_bit)
         
         # set range
         self.bus.write_byte_data(self.addr, MMA8451_REG_XYZ_DATA_CFG,
@@ -82,7 +87,6 @@ class MMA8451(object):
         
     def read(self):
         overflow, counts = self.check_fifo()
-
         if counts > 0:
             data = self.bus.read_i2c_block_data(self.addr, MMA8451_REG_OUT_X_MSB, 6)
         
