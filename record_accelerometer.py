@@ -13,7 +13,7 @@ class MMA8451DAQ(object):
 
         # create output file
         self.create_file()
-        self.max_fsize = 1e5 # bytes
+        self.max_fsize = 1e8 # bytes
         self.write_header()
         
         # create the output buffer
