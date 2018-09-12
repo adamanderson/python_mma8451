@@ -8,4 +8,4 @@ dtparam=i2c_arm=on
 dtparam=i2c_arm_baudrate=200000
 ```
 
-It is also necessary to run the script `init_i2c.sh` in order to configure the I2C driver for repeated start queries. This is necessary so that data for all sensor axes can be read once before they are updated. This script will need to be run upon each restart of the Raspberry Pi.
+It may also be necessary to run the script `enable_repeated_start.sh` in order to configure the I2C driver for repeated start queries. This is necessary so that data for all sensor axes can be read once before they are updated. The script is required when using I2C driver `i2c_bcm2708`, but it does not appear to be required for later driver version, such as `i2c_bcm2835`, which enable repeated start by default. I have only tested this device with these two I2C driver versions, so users of other versions may need to do some debugging.
