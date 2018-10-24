@@ -6,13 +6,14 @@ import os
 import logging
 
 class MMA8451DAQ(object):
-    def __init__(self):
+    def __init__(self, filestub=None):
         # MMA8451 driver object
         self.accelerometer = MMA8451()
         self.accelerometer.begin()
 
         # create output file
-        self.create_file()
+        self.filestub = filestub
+        self.create_file(self.filestub)
         self.max_fsize = 1e8 # bytes
         self.write_header()
         
@@ -58,13 +59,13 @@ class MMA8451DAQ(object):
                 # check the file size and open a new file if necessary
                 if os.stat(self.fname).st_size > self.max_fsize:
                     self.cleanup()
-                    self.create_file()
+                    self.create_file(self.filestub)
                     self.write_header()
 
             if duration is not None and timestamp >= t0 + duration:
                 break
                     
-    def create_file(self):
+    def create_file(self, filestub=None):
         '''
         Creates file for accelerometer data.
 
@@ -76,7 +77,10 @@ class MMA8451DAQ(object):
         -------
         None
         '''
-        self.fname = datetime.utcnow().strftime('%Y%m%d_%H%M%S_accelerometer.dat')
+        if filestub is not None:
+            self.fname = datetime.utcnow().strftime('%Y%m%d_%H%M%S_accelerometer_{}.dat'.format(filestub))
+        else:
+            self.fname = datetime.utcnow().strftime('%Y%m%d_%H%M%S_accelerometer.dat')
         self.outfile = open(self.fname, 'wb')
     
     def cleanup(self):
