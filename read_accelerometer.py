@@ -49,7 +49,7 @@ def read_file(fname):
         Sampling rate in Hz.
     '''
     nbytes = os.stat(fname).st_size
-    nblocks = (nbytes-header_size) / block_size
+    nblocks = int((nbytes-header_size) / block_size)
 
     acc_data = np.zeros((nblocks, 3))
     times = np.zeros(nblocks)
@@ -57,7 +57,7 @@ def read_file(fname):
     jblock = 0
     with open(fname, 'rb') as f:
         # read header
-        start, rate = read_header(f)
+        _, rate = read_header(f)
         
         # read body
         while True:
@@ -110,7 +110,7 @@ def read_for_time(datadir, start, stop):
     
     for jf, fname in enumerate(fnames):
         with open(fname, 'rb') as f:
-            start, rate = read_header(f)
+            start, _ = read_header(f)
             start_times[jf] = start
 
     ind_times = np.arange(0,len(fnames))
