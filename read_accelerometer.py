@@ -129,7 +129,7 @@ def read_for_time(datadir, start, stop):
             ind_times = np.array([len(fnames)-1])
 
     for fname in fnames[ind_times]:
-        acc_data_in_file, times_in_file, rate = read_file(fname)
+        acc_data_in_file, times_in_file, _ = read_file(fname)
         all_data = np.append(all_data, acc_data_in_file[(times_in_file > start_ts) &
                                                         (times_in_file < stop_ts),:],
                              axis=0)
