@@ -1,15 +1,17 @@
 from scipy.signal import periodogram, welch
 from python_mma8451.read_accelerometer import read_file, read_for_time
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
-data, times, rate = read_file('/home/pi/accelerometer/python_mma8451/20180912_182314_accelerometer.dat')
+data, times, rate = read_file('/home/pi/rpi_vibrations/measure/20181113_031816_accelerometer_motor=100.0.dat')
 axes = ['x', 'y', 'z']
 
 for jaxis in range(3):
     plt.figure(jaxis+1)
-    # f, psd = periodogram(data[:,jaxis], fs=rate, window='hanning')
-    f, psd = welch(data[:,jaxis], fs=rate, nperseg=2048, window='hanning')
+    f, psd = periodogram(data[:,jaxis], fs=rate, window='hanning')
+    # f, psd = welch(data[:,jaxis], fs=rate, nperseg=2048, window='hanning')
     plt.semilogy(f, np.sqrt(psd))
     plt.xlabel('frequency [Hz]')
     plt.ylabel('acceleration ASD [g / rtHz]')
